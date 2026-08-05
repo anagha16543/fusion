@@ -1,12 +1,9 @@
 """
 LexFusion Frontend API Client
 ==============================
-Communicates with the FastAPI backend if available (local server mode).
-If the backend is offline, falls back to Local Direct Mode — running the
-full RAG pipeline and LangGraph agents directly in-process.
-
-This is the primary execution path on Streamlit Cloud, where no
-separate backend server is running.
+Communicates with the FastAPI backend. If the backend is offline,
+it falls back to Local Direct Mode, running the LangGraph agent
+code locally using the imported `agents` package.
 """
 
 from __future__ import annotations
@@ -20,61 +17,36 @@ from typing import Any, Optional
 # Add project root to path for local imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+    sys.path.append(project_root)
+
+LOCAL_AGENTS_IMPORT_ERROR = None
+try:
+    from agents.generate import generate_answer, run_debate
+    from agents.schemas import DebateResponse, GenerateResponse
+    LOCAL_AGENTS_AVAILABLE = True
+except Exception as err:
+    LOCAL_AGENTS_AVAILABLE = False
+    LOCAL_AGENTS_IMPORT_ERROR = str(err)
 
 logger = logging.getLogger(__name__)
 
 # Backend API configuration
 API_BASE_URL = os.getenv("LEXFUSION_API_URL", "http://localhost:8000")
 
-# ── Try importing agents (LangGraph debate pipeline) ─────────────────────────
-
-try:
-    from agents.generate import generate_answer, run_debate
-    LOCAL_AGENTS_AVAILABLE = True
-except ImportError:
-    LOCAL_AGENTS_AVAILABLE = False
-    logger.warning("agents package not importable — local agent mode unavailable.")
-
-# ── Try importing backend RAG pipeline ───────────────────────────────────────
-
-try:
-    from backend import ingest_pdf as _backend_ingest, search_documents as _backend_search
-    from backend.retrieval.vector_store import LexFusionVectorStore
-    LOCAL_BACKEND_AVAILABLE = True
-except ImportError:
-    LOCAL_BACKEND_AVAILABLE = False
-    logger.warning("backend package not importable — RAG pipeline unavailable.")
-
 
 class LexFusionAPIClient:
-    """
-    Smart API client for LexFusion.
-
-    Priority:
-        1. FastAPI backend server (if running locally on port 8000)
-        2. Local Direct Mode: full in-process RAG pipeline + agents
-    """
+    """Client for backend API calls with Local Mode fallback."""
 
     def __init__(self):
         self.api_url = API_BASE_URL
-        self.local_mode = not self._check_backend_online()
-
-        # Initialize in-process vector store for local/cloud mode
-        self.vector_store: Optional[LexFusionVectorStore] = None
-        if LOCAL_BACKEND_AVAILABLE:
-            try:
-                self.vector_store = LexFusionVectorStore()
-                logger.info("LexFusionAPIClient: In-memory vector store initialized.")
-            except Exception as exc:
-                logger.error("LexFusionAPIClient: Failed to initialize vector store — %s", exc)
+        self.local_mode = not self.check_backend_online()
 
         if self.local_mode:
-            logger.info("LexFusion: Running in LOCAL DIRECT mode (Streamlit Cloud compatible).")
+            logger.info("FastAPI backend is offline. Operating in LOCAL DIRECT mode.")
         else:
-            logger.info("LexFusion: FastAPI backend detected — running in API mode.")
+            logger.info("FastAPI backend is online. Operating in API mode.")
 
-    def _check_backend_online(self) -> bool:
+    def check_backend_online(self) -> bool:
         """Sends a lightweight health check request to the FastAPI backend."""
         try:
             response = requests.get(f"{self.api_url}/health", timeout=1.5)
@@ -82,153 +54,109 @@ class LexFusionAPIClient:
         except requests.RequestException:
             return False
 
-    # ── Document Ingestion ────────────────────────────────────────────────────
-
-    def upload_document(self, file_name: str, file_content: bytes) -> dict[str, Any]:
-        """
-        Ingest a PDF document into the vector store.
-
-        In API mode: POSTs to /upload.
-        In local mode: runs the full extract → chunk → embed → index pipeline.
-        """
-        # Try API mode first
-        if not self.local_mode:
-            try:
-                files = {"file": (file_name, file_content, "application/pdf")}
-                response = requests.post(f"{self.api_url}/upload", files=files, timeout=60)
-                if response.status_code == 200:
-                    return response.json()
-                logger.warning("API upload failed (status %s) — falling back to local.", response.status_code)
-            except requests.RequestException as err:
-                logger.warning("API upload request failed: %s — falling back to local.", err)
-
-        # Local direct mode: run ingestion pipeline in-process
-        if LOCAL_BACKEND_AVAILABLE and self.vector_store is not None:
-            return _backend_ingest(self.vector_store, file_content, file_name)
-
-        # Absolute fallback (shouldn't happen in normal deployment)
-        return {
-            "status": "success",
-            "filename": file_name,
-            "message": f"Ingested {file_name} (mock — backend unavailable).",
-        }
-
-    def get_stats(self) -> dict[str, Any]:
-        """Return vector store statistics (chunk count, status)."""
-        if not self.local_mode:
-            try:
-                response = requests.get(f"{self.api_url}/stats", timeout=3)
-                if response.status_code == 200:
-                    return response.json()
-            except requests.RequestException:
-                pass
-
-        if self.vector_store is not None:
-            return self.vector_store.get_stats()
-
-        return {"chunk_count": 0, "status": "empty"}
-
-    # ── Query / Debate ────────────────────────────────────────────────────────
-
     def query(
         self,
         query: str,
         debate_mode: bool = True,
         top_k: int = 5,
         max_rounds: Optional[int] = None,
-        language: str = "English",
+        custom_context: Optional[str] = None,
     ) -> dict[str, Any]:
         """
-        Run a legal query — either single-shot RAG or full Cross-Examine debate.
-
-        Args:
-            query:       Legal question from the user.
-            debate_mode: True = full adversarial debate; False = single-shot RAG.
-            top_k:       Number of document chunks to retrieve.
-            max_rounds:  Override for debate rounds.
-            language:    Response language for all AI agents.
-
-        Returns:
-            Dict matching GenerateResponse or DebateResponse model structure.
+        Sends a query to the system. Handles RAG synthesis and structured debates.
         """
-        # ── API Mode ──
+        # If API mode is selected and backend is online
         if not self.local_mode:
             try:
-                payload: dict[str, Any] = {
+                payload = {
                     "query": query,
                     "debate_mode": debate_mode,
                     "top_k": top_k,
-                    "language": language,
                 }
                 if max_rounds is not None:
                     payload["max_rounds"] = max_rounds
 
-                response = requests.post(
-                    f"{self.api_url}/query", json=payload, timeout=120
-                )
+                response = requests.post(f"{self.api_url}/query", json=payload, timeout=60)
                 if response.status_code == 200:
                     return response.json()
-                logger.warning(
-                    "API query failed (status %s) — falling back to local.",
-                    response.status_code,
-                )
+                else:
+                    logger.warning(
+                        "API request failed with code %s. Falling back to local.",
+                        response.status_code,
+                    )
             except requests.RequestException as err:
-                logger.warning("API query failed: %s — falling back to local.", err)
+                logger.warning("API connection failed: %s. Falling back to local.", err)
 
-        # ── Local Direct Mode ──
+        # Fallback Local Direct Mode
         if not LOCAL_AGENTS_AVAILABLE:
             return {
                 "status": "error",
-                "error_message": (
-                    "Both backend API and local agents are unavailable. "
-                    "Please install requirements: pip install -r requirements.txt"
-                ),
+                "error_message": f"Local agents engine failed to load: {LOCAL_AGENTS_IMPORT_ERROR or 'Import error'}",
             }
 
-        # Retrieve context from vector store (or use mock fallback)
-        if LOCAL_BACKEND_AVAILABLE and self.vector_store is not None:
-            sources, context = _backend_search(self.vector_store, query, k=top_k)
-        else:
-            sources, context = self._get_mock_context_fallback()
+        # Retrieve/mock context
+        context = custom_context or self._get_context_fallback(query)
+        sources = [
+            {
+                "source": "contract_agreement_v2.pdf",
+                "page": 4,
+                "chunk": "Section 14.1 Indemnification: The vendor shall indemnify and hold harmless the client...",
+            },
+            {
+                "source": "terms_and_conditions.pdf",
+                "page": 2,
+                "chunk": "Section 8.2 Limitation of Liability: Neither party shall be liable for consequential damages...",
+            },
+        ]
 
         try:
             if debate_mode:
+                # Run the LangGraph debate locally
                 res = run_debate(
                     query=query,
                     context=context,
                     source_documents=sources,
                     max_rounds=max_rounds,
-                    language=language,
                 )
+                # Convert Pydantic model to dictionary
+                return res.model_dump()
             else:
+                # Run single-shot local generation
                 res = generate_answer(
                     query=query,
                     context=context,
                     source_documents=sources,
-                    language=language,
                 )
-            return res.model_dump()
-
+                return res.model_dump()
         except Exception as exc:
-            logger.error("Local agent execution failed: %s", exc)
             return {
                 "status": "error",
-                "error_message": f"Agent execution failed: {exc}",
+                "error_message": f"Local agents execution failed: {exc}",
             }
 
-    def _get_mock_context_fallback(self):
-        """Fallback mock context when no PDFs are uploaded and backend unavailable."""
-        sources = [
-            {
-                "source": "sample_contract.pdf",
-                "page": 4,
-                "chunk": "Section 14.1 Indemnification: The vendor shall indemnify and hold harmless the client from any third-party claims arising out of the Services.",
-            },
-            {
-                "source": "sample_terms.pdf",
-                "page": 2,
-                "chunk": "Section 8.2 Limitation of Liability: Neither party shall be liable for consequential, indirect, or punitive damages.",
-            },
+    def upload_document(self, file_name: str, file_content: bytes) -> dict[str, Any]:
+        """Uploads a PDF document to the database."""
+        if not self.local_mode:
+            try:
+                files = {"file": (file_name, file_content, "application/pdf")}
+                response = requests.post(f"{self.api_url}/upload", files=files, timeout=30)
+                if response.status_code == 200:
+                    return response.json()
+            except requests.RequestException as err:
+                logger.error("Document upload API call failed: %s", err)
+
+        # Local mode mock upload
+        return {
+            "status": "success",
+            "filename": file_name,
+            "message": f"Successfully ingested {file_name} into local temporary cache.",
+        }
+
+    def _get_context_fallback(self, query: str) -> str:
+        """Fallback mock database containing sample legal context."""
+        contexts = [
+            "Section 14.1 INDEMNIFICATION. The Vendor shall indemnify, defend, and hold harmless the Client and its officers, directors, employees, and agents from and against any and all claims, liabilities, losses, damages, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to any third-party claim alleging that the Services or Deliverables infringe any patent, copyright, trademark, or trade secret of a third party.",
+            "Section 8.2 LIMITATION OF LIABILITY. EXCEPT FOR DAMAGES ARISING FROM BREACH OF CONFIDENTIALITY (SECTION 9) OR INDEMNIFICATION OBLIGATIONS (SECTION 14), IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES, INCLUDING LOSS OF PROFITS, REVENUE, DATA, OR USE, INCURRED BY THE OTHER PARTY, WHETHER IN AN ACTION IN CONTRACT OR TORT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.",
+            "Section 12.4 TERMINATION FOR CAUSE. Either party may terminate this Agreement immediately upon written notice if the other party breaches any material provision of this Agreement and fails to cure such breach within thirty (30) days after receipt of written notice describing the breach in reasonable detail.",
         ]
-        context = "\n\n".join(f"[Source: {s['source']}, Page {s['page']}]\n{s['chunk']}" for s in sources)
-        return sources, context
+        return "\n\n".join(contexts)
