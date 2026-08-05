@@ -1,0 +1,24 @@
+# LexFusion Cross-Examine — Agent-specific dependencies
+# ======================================================
+# Install with: pip install -r agents/requirements.txt
+
+# LLM Orchestration
+langchain==0.3.25
+langchain-core==0.3.65
+langchain-groq==0.3.2
+langchain-google-genai==2.1.5
+langchain-community==0.3.24
+
+# Agentic State Machine
+langgraph==0.4.8
+
+# LLM Providers
+groq==0.25.0
+google-generativeai==0.8.5
+
+# Data Validation & Schemas
+pydantic==2.11.4
+typing-extensions==4.13.2
+
+# Environment Configuration
+python-dotenv==1.1.0
