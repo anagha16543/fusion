@@ -223,14 +223,9 @@ def _extract_confidence(text: str) -> int:
 def should_continue_debate(state: DebateState) -> Literal["continue", "synthesize"]:
     """
     Routing function: continue debate if rounds remain, else move to synthesis.
-    Re-reads MAX_DEBATE_ROUNDS from the environment at call time so that a
-    per-request override written by run_debate() (via os.environ) is honoured —
-    the module-level constant is captured at import time and would otherwise
-    ignore any runtime change.
     """
     current_round = state.get("current_round", 1)
-    max_rounds = int(os.getenv("MAX_DEBATE_ROUNDS", str(MAX_DEBATE_ROUNDS)))
-    if current_round <= max_rounds:
+    if current_round <= MAX_DEBATE_ROUNDS:
         return "continue"
     return "synthesize"
 
@@ -250,7 +245,7 @@ def build_debate_graph():
     # Register all nodes
     graph.add_node("advocate_a", advocate_a_node)
     graph.add_node("advocate_b", advocate_b_node)
-    graph.add_node("judge_synthesis", synthesis_node)
+    graph.add_node("synthesis", synthesis_node)
 
     # Entry point: prosecution always opens
     graph.add_edge(START, "advocate_a")
@@ -264,12 +259,12 @@ def build_debate_graph():
         should_continue_debate,
         {
             "continue": "advocate_a",   # Another round of debate
-            "synthesize": "judge_synthesis",  # Enough rounds — judge rules
+            "synthesize": "synthesis",  # Enough rounds — judge rules
         },
     )
 
     # After synthesis → done
-    graph.add_edge("judge_synthesis", END)
+    graph.add_edge("synthesis", END)
 
     return graph.compile()
 

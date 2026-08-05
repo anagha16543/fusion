@@ -1,8 +1,16 @@
 """
 LexFusion — ChromaDB In-Memory Vector Store
 =============================================
-Uses chromadb 0.4.x Client() (in-memory, no disk I/O).
-Self-healing: reinitialises on stale-connection errors.
+Wraps a ChromaDB in-memory client with LangChain-Chroma integration.
+In-memory means the store lives for the duration of the Streamlit session —
+perfect for Streamlit Cloud where disk persistence is unreliable.
+
+Usage:
+    store = LexFusionVectorStore()
+    store.add_documents(docs)           # List[LangChain Document]
+    results = store.similarity_search(query, k=5)
+    stats = store.get_stats()
+    store.clear()
 """
 
 from __future__ import annotations
@@ -15,116 +23,116 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "lexfusion_legal_docs"
 
 
-def _silence_telemetry():
-    """
-    Patch the broken posthog capture() in chromadb's telemetry so it no
-    longer spams the console with 'takes 1 positional argument but 3 were given'.
-    """
-    try:
-        import chromadb.telemetry.product.posthog as _ph
-        _ph.Posthog.capture = lambda self, *a, **kw: None  # no-op
-    except Exception:
-        pass
-
-
 class LexFusionVectorStore:
     """
     ChromaDB in-memory vector store for LexFusion legal document chunks.
-    Self-healing: reinitialises the client if the connection goes stale.
+
+    Thread-safe for Streamlit's single-threaded session model.
+    Each instantiation creates a fresh in-memory ChromaDB client.
     """
 
     def __init__(self):
         try:
-            import chromadb                     # noqa: F401
-            from langchain_chroma import Chroma  # noqa: F401
+            import chromadb
+            from langchain_chroma import Chroma
         except ImportError as exc:
             raise ImportError(
                 "chromadb and langchain-chroma are required. "
-                "Install with: pip install 'chromadb==0.4.24' langchain-chroma"
+                "Install with: pip install chromadb langchain-chroma"
             ) from exc
 
         from backend.retrieval.embed import get_embeddings
+
         self._embeddings = get_embeddings()
-        _silence_telemetry()
-        self._init_store()
-        logger.info("LexFusionVectorStore: ready.")
 
-    def _init_store(self):
-        """(Re-)create the ChromaDB client and Chroma store from scratch."""
-        import chromadb
-        from langchain_chroma import Chroma
-
-        _silence_telemetry()
-
-        # chromadb.Client() = pure in-memory, no disk, no server process.
-        # This is the stable 0.4.x API (EphemeralClient in 0.5.x is broken).
+        # Ephemeral in-memory client — no disk I/O, Streamlit Cloud safe
         self._chroma_client = chromadb.Client()
-        # Pre-create the collection so the schema is ready before LangChain touches it
-        self._chroma_client.get_or_create_collection(COLLECTION_NAME)
 
         self._store = Chroma(
             client=self._chroma_client,
             collection_name=COLLECTION_NAME,
             embedding_function=self._embeddings,
         )
-        logger.info("LexFusionVectorStore: ChromaDB initialised (collection=%s).", COLLECTION_NAME)
 
-    # ── Write ──────────────────────────────────────────────────
+        logger.info("LexFusionVectorStore: Initialized in-memory ChromaDB collection '%s'.", COLLECTION_NAME)
+
+    # ── Write ──────────────────────────────────────────────────────────────────
 
     def add_documents(self, docs: list) -> int:
+        """
+        Embed and index a list of LangChain Documents into the vector store.
+
+        Args:
+            docs: List of LangChain Document objects (from chunk.py).
+
+        Returns:
+            Number of chunks successfully added.
+        """
         if not docs:
             return 0
-        try:
-            self._store.add_documents(docs)
-        except Exception as exc:
-            logger.warning("add_documents failed (%s) — reinitialising and retrying.", exc)
-            self._init_store()
-            self._store.add_documents(docs)  # let this raise if still broken
 
+        self._store.add_documents(docs)
         count = len(docs)
-        logger.info("LexFusionVectorStore: added %d chunks.", count)
+        logger.info("LexFusionVectorStore: Added %d chunks to collection.", count)
         return count
 
-    # ── Read ───────────────────────────────────────────────────
+    # ── Read ───────────────────────────────────────────────────────────────────
 
     def similarity_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Retrieve the top-k most semantically relevant chunks for a query.
+
+        Args:
+            query: User's legal question (will be embedded).
+            k:     Number of top results to return.
+
+        Returns:
+            List of dicts: [{"source": str, "page": int, "chunk": str}, ...]
+        """
         try:
             results = self._store.similarity_search(query, k=k)
         except Exception as exc:
-            logger.warning("similarity_search failed (%s) — reinitialising.", exc)
-            self._init_store()
-            try:
-                results = self._store.similarity_search(query, k=k)
-            except Exception:
-                return []
+            logger.warning("similarity_search failed: %s — returning empty results.", exc)
+            return []
 
         return [
             {
-                "source": doc.metadata.get("source", "Unknown"),
-                "page":   doc.metadata.get("page", "?"),
-                "chunk":  doc.page_content,
+                "source": doc.metadata.get("source", "Unknown Document"),
+                "page": doc.metadata.get("page", "?"),
+                "chunk": doc.page_content,
             }
             for doc in results
         ]
 
     def get_stats(self) -> Dict[str, Any]:
+        """Return current collection statistics."""
         try:
             count = self._store._collection.count()
         except Exception:
             count = 0
         return {
             "chunk_count": count,
-            "collection":  COLLECTION_NAME,
-            "status":      "active" if count > 0 else "empty",
+            "collection": COLLECTION_NAME,
+            "status": "active" if count > 0 else "empty",
         }
 
+    # ── Admin ──────────────────────────────────────────────────────────────────
+
     def clear(self):
+        """Drop and recreate the collection, wiping all indexed documents."""
         try:
+            from langchain_chroma import Chroma
             self._chroma_client.delete_collection(COLLECTION_NAME)
-            self._init_store()
-            logger.info("LexFusionVectorStore: cleared.")
+            self._store = Chroma(
+                client=self._chroma_client,
+                collection_name=COLLECTION_NAME,
+                embedding_function=self._embeddings,
+            )
+            logger.info("LexFusionVectorStore: Collection cleared.")
         except Exception as exc:
-            logger.error("LexFusionVectorStore: clear failed — %s", exc)
+            logger.error("LexFusionVectorStore: Clear failed — %s", exc)
 
     def is_empty(self) -> bool:
-        return self.get_stats()["chunk_count"] == 0
+        """Returns True if no documents have been indexed yet."""
+        stats = self.get_stats()
+        return stats["chunk_count"] == 0

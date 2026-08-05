@@ -82,16 +82,7 @@ async def upload_document(file: UploadFile = File(...)):
     if result.get("status") == "error":
         raise HTTPException(status_code=422, detail=result.get("message", "Ingestion failed."))
 
-    # Build UploadResponse explicitly to avoid Pydantic rejecting extra keys
-    # that ingest_pdf() may include (e.g. extra debug fields) and to guarantee
-    # every required field is present even when the dict is sparse.
-    return UploadResponse(
-        status=result.get("status", "success"),
-        filename=result.get("filename", file.filename),
-        pages_extracted=result.get("pages_extracted", 0),
-        chunks_added=result.get("chunks_added", 0),
-        message=result.get("message", ""),
-    )
+    return UploadResponse(**result)
 
 
 @app.post("/query")

@@ -9,16 +9,7 @@ Cached at module level to avoid reloading the model on each call.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Optional
-
-# Disable TensorFlow/Keras backends in transformers BEFORE any import of
-# sentence-transformers or transformers.  Without this, transformers tries to
-# import tf-keras, which breaks on Keras 3 with:
-#   "Your currently installed version of Keras is Keras 3, but this is not yet
-#    supported in Transformers."
-os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
-os.environ.setdefault("USE_TF", "0")
 
 logger = logging.getLogger(__name__)
 

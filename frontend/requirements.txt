@@ -1,6 +1,17 @@
-streamlit==1.45.1
-requests==2.32.3
-plotly==5.22.0
-pydantic==2.11.4
-typing-extensions==4.13.2
-python-dotenv==1.1.0
+# Core Frontend & UI
+streamlit>=1.35.0
+requests>=2.31.0
+plotly>=5.20.0
+pydantic>=2.8.0
+typing-extensions>=4.10.0
+python-dotenv>=1.0.1
+
+# LangGraph Agent Engine & LLMs
+langgraph>=0.1.0
+langchain>=0.2.0
+langchain-core>=0.2.0
+langchain-groq>=0.1.0
+langchain-community>=0.2.0
+langchain-google-genai>=2.0.0
+groq>=0.9.0
+google-generativeai>=0.7.0

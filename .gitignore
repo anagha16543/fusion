@@ -1,42 +1,16 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.egg
-*.egg-info/
-dist/
-build/
-*.whl
-
-# Virtual environments
-.venv/
-venv/
-env/
-.env.local
-
-# Secrets — never commit
+# Environment variables
 .env
-.streamlit/secrets.toml
-.streamlit/credentials.toml
 
-# ChromaDB local persistence (if any)
-chroma_db/
-*.db
-*.sqlite
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
 
-# Jupyter
-.ipynb_checkpoints/
+# Virtual Environments
+venv/
+.venv/
+env/
 
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE
+# IDE settings
 .vscode/
 .idea/
-*.swp
-
-# Logs
-*.log

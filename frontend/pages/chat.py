@@ -8,19 +8,6 @@ Supports multilingual responses via the sidebar language selector.
 
 from __future__ import annotations
 
-import os
-import sys
-
-# Ensure the frontend directory is on sys.path so that relative imports
-# (utils, components) resolve correctly regardless of invocation CWD.
-_here = os.path.dirname(os.path.abspath(__file__))           # .../frontend/pages
-_frontend = os.path.abspath(os.path.join(_here, ".."))       # .../frontend
-_project_root = os.path.abspath(os.path.join(_frontend, ".."))  # project root
-
-for _p in (_project_root, _frontend):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
-
 import streamlit as st
 from utils.api_client import LexFusionAPIClient
 from components.answer_card import render_source_cards

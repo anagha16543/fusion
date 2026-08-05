@@ -7,8 +7,6 @@ and an animated gauge for confidence scores.
 
 from __future__ import annotations
 
-import html
-
 import streamlit as st
 import plotly.graph_objects as go
 
@@ -60,12 +58,11 @@ def render_source_cards(sources: list[dict]):
         chunk_text = doc.get("chunk", "")
 
         with st.expander(f"📄 Source #{idx+1}: {source_name} (Page {page})"):
-            safe_chunk = html.escape(chunk_text)
             st.markdown(
                 f"""
                 <div class="glass-card advocate-card" style="margin-top: 5px; margin-bottom: 5px;">
                     <p style="font-style: italic; color: #d1d5db; font-size: 0.95rem;">
-                        &ldquo;{safe_chunk}&rdquo;
+                        "{chunk_text}"
                     </p>
                 </div>
                 """,
