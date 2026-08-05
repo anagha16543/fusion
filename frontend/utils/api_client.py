@@ -74,6 +74,31 @@ class LexFusionAPIClient:
         else:
             logger.info("LexFusion: FastAPI backend detected — running in API mode.")
 
+    def _ensure_vector_store(self):
+        """
+        Return a healthy vector store, re-creating it if the underlying
+        ChromaDB connection has gone stale (e.g. after Streamlit hot-reload).
+        """
+        if not LOCAL_BACKEND_AVAILABLE:
+            return None
+        if self.vector_store is None:
+            try:
+                self.vector_store = LexFusionVectorStore()
+            except Exception as exc:
+                logger.error("_ensure_vector_store: could not create store — %s", exc)
+                return None
+        # Quick health-check: if stats throws, reinit
+        try:
+            self.vector_store.get_stats()
+        except Exception as exc:
+            logger.warning("Vector store unhealthy (%s) — reinitialising.", exc)
+            try:
+                self.vector_store = LexFusionVectorStore()
+            except Exception as exc2:
+                logger.error("Reinit failed — %s", exc2)
+                self.vector_store = None
+        return self.vector_store
+
     def _check_backend_online(self) -> bool:
         """Sends a lightweight health check request to the FastAPI backend."""
         try:
@@ -103,8 +128,8 @@ class LexFusionAPIClient:
                 logger.warning("API upload request failed: %s — falling back to local.", err)
 
         # Local direct mode: run ingestion pipeline in-process
-        if LOCAL_BACKEND_AVAILABLE and self.vector_store is not None:
-            return _backend_ingest(self.vector_store, file_content, file_name)
+        if LOCAL_BACKEND_AVAILABLE and self._ensure_vector_store() is not None:
+            return _backend_ingest(self._ensure_vector_store(), file_content, file_name)
 
         # Absolute fallback (shouldn't happen in normal deployment)
         return {
@@ -123,8 +148,8 @@ class LexFusionAPIClient:
             except requests.RequestException:
                 pass
 
-        if self.vector_store is not None:
-            return self.vector_store.get_stats()
+        if self._ensure_vector_store() is not None:
+            return self._ensure_vector_store().get_stats()
 
         return {"chunk_count": 0, "status": "empty"}
 
@@ -186,8 +211,8 @@ class LexFusionAPIClient:
             }
 
         # Retrieve context from vector store (or use mock fallback)
-        if LOCAL_BACKEND_AVAILABLE and self.vector_store is not None:
-            sources, context = _backend_search(self.vector_store, query, k=top_k)
+        if LOCAL_BACKEND_AVAILABLE and self._ensure_vector_store() is not None:
+            sources, context = _backend_search(self._ensure_vector_store(), query, k=top_k)
         else:
             sources, context = self._get_mock_context_fallback()
 

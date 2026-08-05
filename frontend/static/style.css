@@ -1,66 +1,273 @@
+/* ─────────────────────────────────────────────────────────────────
+   LexFusion — Master Stylesheet
+   Supports dark (default) and light theme via [data-theme] on <body>
+───────────────────────────────────────────────────────────────── */
+
 /* Import Premium Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@500;700&display=swap');
 
-/* Main App Layout Settings */
+/* ── CSS Custom Properties (Dark Theme — default) ───────────── */
+:root {
+    --bg-primary:       #030712;
+    --bg-secondary:     rgba(17, 24, 39, 0.5);
+    --bg-card:          rgba(17, 24, 39, 0.45);
+    --bg-navbar:        rgba(3, 7, 18, 0.92);
+    --text-primary:     #f3f4f6;
+    --text-secondary:   #9ca3af;
+    --text-muted:       #6b7280;
+    --border-subtle:    rgba(255, 255, 255, 0.07);
+    --border-hover:     rgba(201, 168, 76, 0.3);
+    --gold:             #c9a84c;
+    --gold-glow:        rgba(201, 168, 76, 0.3);
+    --gold-bg:          rgba(201, 168, 76, 0.12);
+    --shadow:           rgba(0, 0, 0, 0.3);
+    --scrollbar-track:  rgba(17, 24, 39, 0.3);
+    --scrollbar-thumb:  rgba(201, 168, 76, 0.2);
+    --input-bg:         rgba(17, 24, 39, 0.6);
+    --prose-color:      #e5e7eb;
+    --sidebar-bg:       rgba(9, 14, 28, 0.97);
+}
+
+/* ── CSS Custom Properties (Light Theme) ────────────────────── */
+[data-theme="light"] {
+    --bg-primary:       #f8f6f0;
+    --bg-secondary:     rgba(255, 255, 255, 0.85);
+    --bg-card:          rgba(255, 255, 255, 0.9);
+    --bg-navbar:        rgba(248, 246, 240, 0.97);
+    --text-primary:     #1a1a2e;
+    --text-secondary:   #4b5563;
+    --text-muted:       #6b7280;
+    --border-subtle:    rgba(0, 0, 0, 0.08);
+    --border-hover:     rgba(201, 168, 76, 0.5);
+    --gold:             #a07c28;
+    --gold-glow:        rgba(160, 124, 40, 0.2);
+    --gold-bg:          rgba(201, 168, 76, 0.1);
+    --shadow:           rgba(0, 0, 0, 0.1);
+    --scrollbar-track:  rgba(0, 0, 0, 0.05);
+    --scrollbar-thumb:  rgba(160, 124, 40, 0.3);
+    --input-bg:         rgba(255, 255, 255, 0.9);
+    --prose-color:      #374151;
+    --sidebar-bg:       rgba(248, 246, 240, 0.99);
+}
+
+/* ── Base App ────────────────────────────────────────────────── */
 .stApp {
-    background-color: #030712;
-    background-image: 
+    background-color: var(--bg-primary);
+    background-image:
         radial-gradient(at 0% 0%, rgba(201, 168, 76, 0.06) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(29, 78, 216, 0.05) 0px, transparent 50%);
     background-attachment: fixed;
     font-family: 'Inter', sans-serif;
-    color: #f3f4f6;
+    color: var(--text-primary);
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-/* Titles and Typography */
+/* ── Hide Streamlit default sidebar entirely ─────────────────── */
+[data-testid="stSidebar"] {
+    display: none !important;
+}
+
+/* Remove the sidebar toggle arrow button */
+[data-testid="collapsedControl"] {
+    display: none !important;
+}
+
+/* Push main content to full width */
+.block-container {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    padding-top: 90px !important;   /* leave room for top navbar */
+}
+
+/* ── Top Navigation Bar ──────────────────────────────────────── */
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    height: 62px;
+    background: var(--bg-navbar);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+    box-shadow: 0 2px 20px var(--shadow);
+    transition: background 0.4s ease;
+}
+
+.navbar-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 10px var(--gold-glow);
+    white-space: nowrap;
+    letter-spacing: 1px;
+}
+
+.navbar-divider {
+    width: 1px;
+    height: 30px;
+    background: var(--border-subtle);
+    flex-shrink: 0;
+}
+
+.navbar-nav-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.navbar-nav-btn:hover {
+    background: var(--gold-bg);
+    color: var(--gold);
+    border-color: var(--border-hover);
+}
+
+.navbar-nav-btn.active {
+    background: var(--gold-bg);
+    color: var(--gold);
+    border-color: var(--border-hover);
+}
+
+/* Theme toggle pill */
+.theme-toggle {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.theme-toggle:hover {
+    border-color: var(--border-hover);
+    color: var(--gold);
+}
+
+/* Mode badge */
+.mode-badge {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* ── Titles and Typography ───────────────────────────────────── */
 h1, h2, h3, .court-title {
     font-family: 'Cinzel', serif;
-    color: #f3f4f6;
+    color: var(--text-primary);
     letter-spacing: 1px;
 }
 
 .gold-text {
-    color: #c9a84c;
-    text-shadow: 0 0 10px rgba(201, 168, 76, 0.3);
+    color: var(--gold);
+    text-shadow: 0 0 10px var(--gold-glow);
 }
 
-/* Glassmorphism Cards */
+/* ── Glassmorphism Cards ─────────────────────────────────────── */
 .glass-card {
-    background: rgba(17, 24, 39, 0.5);
+    background: var(--bg-secondary);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 var(--shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-primary);
 }
 
 .glass-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(201, 168, 76, 0.3);
-    box-shadow: 0 12px 40px 0 rgba(201, 168, 76, 0.05);
+    border-color: var(--border-hover);
+    box-shadow: 0 12px 40px 0 var(--gold-glow);
 }
 
-/* Courtroom Split Columns */
+/* ── Debate Round Entry Animation ────────────────────────────── */
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50%       { box-shadow: 0 0 18px 4px rgba(201,168,76,0.18); }
+}
+
+@keyframes judgeFadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.advocate-enter-left {
+    animation: slideInLeft 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.advocate-enter-right {
+    animation: slideInRight 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.judge-enter {
+    animation: judgeFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both,
+               glowPulse 2s ease-in-out 0.7s 2;
+}
+
+.round-header-enter {
+    animation: fadeInUp 0.4s ease both;
+}
+
+/* ── Courtroom Split Columns ─────────────────────────────────── */
 .advocate-card {
-    border-left: 4px solid #9ca3af;
-    background: rgba(17, 24, 39, 0.45);
+    border-left: 4px solid var(--text-muted);
+    background: var(--bg-card);
     border-radius: 0 12px 12px 0;
+    color: var(--prose-color);
 }
 
 .advocate-prosecution {
-    border-left: 4px solid #c9a84c;
-    box-shadow: inset 5px 0 20px rgba(201, 168, 76, 0.03);
+    border-left: 4px solid var(--gold);
+    box-shadow: inset 5px 0 20px rgba(201, 168, 76, 0.04);
 }
 
 .advocate-defence {
     border-left: 4px solid #3b82f6;
-    box-shadow: inset 5px 0 20px rgba(59, 130, 246, 0.03);
+    box-shadow: inset 5px 0 20px rgba(59, 130, 246, 0.04);
 }
 
-/* Status Badges */
+/* ── Status Badges ───────────────────────────────────────────── */
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -90,31 +297,101 @@ h1, h2, h3, .court-title {
     font-family: 'Cinzel', serif;
 }
 
-/* Pulsing Animation for Typing Indicator */
+/* Round separator label */
+.round-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    border-bottom: 1px solid rgba(201,168,76,0.35);
+    padding: 2px 15px;
+    letter-spacing: 2px;
+}
+
+/* ── Typing / Waiting Indicator ──────────────────────────────── */
 @keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
 }
 
 .typing-indicator {
     animation: pulse 1.5s infinite ease-in-out;
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-style: italic;
     font-size: 0.9rem;
+    padding: 12px 0;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* Animated dots */
+@keyframes dotBounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+    40%           { transform: scale(1);   opacity: 1; }
 }
-::-webkit-scrollbar-track {
-    background: rgba(17, 24, 39, 0.3);
+
+.dot-flashing span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    margin: 0 3px;
 }
-::-webkit-scrollbar-thumb {
-    background: rgba(201, 168, 76, 0.2);
-    border-radius: 4px;
+.dot-flashing span:nth-child(1) { animation: dotBounce 1.2s 0.0s infinite; }
+.dot-flashing span:nth-child(2) { animation: dotBounce 1.2s 0.2s infinite; }
+.dot-flashing span:nth-child(3) { animation: dotBounce 1.2s 0.4s infinite; }
+
+/* ── Top Navbar Streamlit override ───────────────────────────── */
+/* Hide default Streamlit header */
+header[data-testid="stHeader"] {
+    display: none !important;
 }
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 168, 76, 0.4);
+
+/* ── Inputs & Buttons ────────────────────────────────────────── */
+.stTextArea textarea,
+.stTextInput input {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-subtle) !important;
+    transition: background 0.3s, color 0.3s;
+}
+
+.stButton > button {
+    transition: all 0.2s ease;
+}
+
+/* ── Custom Scrollbars ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* ── Horizontal settings bar (below navbar) ──────────────────── */
+.settings-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 10px 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.settings-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* ── Light theme overrides for markdown text ─────────────────── */
+[data-theme="light"] p,
+[data-theme="light"] li,
+[data-theme="light"] .stMarkdown {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .gold-text {
+    text-shadow: none;
 }
