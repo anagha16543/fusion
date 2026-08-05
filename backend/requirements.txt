@@ -1,0 +1,13 @@
+# LexFusion Backend — Optional FastAPI server dependencies
+# ==========================================================
+# These are included in the root requirements.txt for Streamlit Cloud.
+# For standalone server: pip install -r backend/requirements.txt
+
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pymupdf>=1.24.0
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+langchain-huggingface>=0.1.0
+langchain-chroma>=0.1.4
+python-multipart>=0.0.9
