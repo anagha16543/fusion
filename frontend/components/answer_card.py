@@ -1,4 +1,4 @@
-"""
+﻿"""
 LexFusion Answer Card Component
 ================================
 Renders clean UI cards for answers, sources, disclaimers,
@@ -6,6 +6,8 @@ and an animated gauge for confidence scores.
 """
 
 from __future__ import annotations
+
+import html
 
 import streamlit as st
 import plotly.graph_objects as go
@@ -51,18 +53,19 @@ def render_source_cards(sources: list[dict]):
         st.markdown("*No document sources cited.*")
         return
 
-    st.markdown("### 📂 Cited Legal Evidence")
+    st.markdown("### ≡ƒôé Cited Legal Evidence")
     for idx, doc in enumerate(sources):
         source_name = doc.get("source", "Unknown Document")
         page = doc.get("page", "?")
         chunk_text = doc.get("chunk", "")
 
-        with st.expander(f"📄 Source #{idx+1}: {source_name} (Page {page})"):
+        with st.expander(f"≡ƒôä Source #{idx+1}: {source_name} (Page {page})"):
+            safe_chunk = html.escape(chunk_text)
             st.markdown(
                 f"""
                 <div class="glass-card advocate-card" style="margin-top: 5px; margin-bottom: 5px;">
                     <p style="font-style: italic; color: #d1d5db; font-size: 0.95rem;">
-                        "{chunk_text}"
+                        &ldquo;{safe_chunk}&rdquo;
                     </p>
                 </div>
                 """,
@@ -77,7 +80,7 @@ def render_synthesis_card(synthesis: str, confidence_score: int):
         <div class="glass-card" style="border-color: rgba(139, 92, 246, 0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="court-title" style="font-size: 1.4rem; font-weight: bold; color: #a78bfa;">
-                    ⚖️ Presiding Judge Findings
+                    ΓÜû∩╕Å Presiding Judge Findings
                 </span>
                 <span class="status-badge badge-judge">RULING DELIVERED</span>
             </div>

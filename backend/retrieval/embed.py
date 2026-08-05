@@ -1,19 +1,28 @@
-"""
-LexFusion — Embedding Model
+﻿"""
+LexFusion ΓÇö Embedding Model
 ============================
 Singleton wrapper for sentence-transformers/all-MiniLM-L6-v2.
-Runs fully in-process — no external API key required.
+Runs fully in-process ΓÇö no external API key required.
 Cached at module level to avoid reloading the model on each call.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
+
+# Disable TensorFlow/Keras backends in transformers BEFORE any import of
+# sentence-transformers or transformers.  Without this, transformers tries to
+# import tf-keras, which breaks on Keras 3 with:
+#   "Your currently installed version of Keras is Keras 3, but this is not yet
+#    supported in Transformers."
+os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
+os.environ.setdefault("USE_TF", "0")
 
 logger = logging.getLogger(__name__)
 
-# Module-level singleton — loaded once per Python process
+# Module-level singleton ΓÇö loaded once per Python process
 _embeddings_instance = None
 
 

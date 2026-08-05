@@ -1,5 +1,5 @@
-"""
-LexFusion — FastAPI Backend Server (Optional)
+﻿"""
+LexFusion ΓÇö FastAPI Backend Server (Optional)
 ==============================================
 Run this for local server deployment:
     uvicorn backend.main:app --reload --port 8000
@@ -33,7 +33,7 @@ _vector_store: LexFusionVectorStore | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _vector_store
-    logger.info("LexFusion API: Starting up — initializing vector store...")
+    logger.info("LexFusion API: Starting up ΓÇö initializing vector store...")
     _vector_store = LexFusionVectorStore()
     logger.info("LexFusion API: Vector store ready.")
     yield
@@ -47,7 +47,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow Streamlit frontend (port 8501) and any localhost origin
+# CORS ΓÇö allow Streamlit frontend (port 8501) and any localhost origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8501", "http://127.0.0.1:8501", "*"],
@@ -57,7 +57,7 @@ app.add_middleware(
 )
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇ Endpoints ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -68,7 +68,7 @@ async def health_check():
 @app.post("/upload", response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...)):
     """
-    Ingest a PDF: extract → chunk → embed → index into ChromaDB.
+    Ingest a PDF: extract ΓåÆ chunk ΓåÆ embed ΓåÆ index into ChromaDB.
     """
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
@@ -82,7 +82,16 @@ async def upload_document(file: UploadFile = File(...)):
     if result.get("status") == "error":
         raise HTTPException(status_code=422, detail=result.get("message", "Ingestion failed."))
 
-    return UploadResponse(**result)
+    # Build UploadResponse explicitly to avoid Pydantic rejecting extra keys
+    # that ingest_pdf() may include (e.g. extra debug fields) and to guarantee
+    # every required field is present even when the dict is sparse.
+    return UploadResponse(
+        status=result.get("status", "success"),
+        filename=result.get("filename", file.filename),
+        pages_extracted=result.get("pages_extracted", 0),
+        chunks_added=result.get("chunks_added", 0),
+        message=result.get("message", ""),
+    )
 
 
 @app.post("/query")
@@ -114,7 +123,7 @@ async def query_endpoint(request: QueryRequest):
             )
         return result.model_dump()
     except Exception as exc:
-        logger.error("/query: Agent execution failed — %s", exc)
+        logger.error("/query: Agent execution failed ΓÇö %s", exc)
         raise HTTPException(status_code=500, detail=f"Agent execution failed: {exc}")
 
 

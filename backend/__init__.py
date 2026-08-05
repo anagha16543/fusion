@@ -1,5 +1,5 @@
-"""
-LexFusion — Backend Public API
+﻿"""
+LexFusion ΓÇö Backend Public API
 ================================
 Clean public interface used by frontend/utils/api_client.py in local mode.
 Orchestrates the full ingestion and retrieval pipeline.
@@ -19,7 +19,7 @@ def ingest_pdf(
     filename: str,
 ) -> Dict[str, Any]:
     """
-    Run the full ingestion pipeline: extract → chunk → embed → index.
+    Run the full ingestion pipeline: extract ΓåÆ chunk ΓåÆ embed ΓåÆ index.
 
     Args:
         vector_store: LexFusionVectorStore instance (from session state).
@@ -49,14 +49,14 @@ def ingest_pdf(
             "filename": filename,
             "pages_extracted": len(pages),
             "chunks_added": count,
-            "message": f"Successfully ingested '{filename}': {len(pages)} pages → {count} chunks indexed.",
+            "message": f"Successfully ingested '{filename}': {len(pages)} pages ΓåÆ {count} chunks indexed.",
         }
 
     except RuntimeError as exc:
         logger.error("ingest_pdf: %s", exc)
         return {"status": "error", "filename": filename, "message": str(exc)}
     except Exception as exc:
-        logger.error("ingest_pdf: Unexpected error — %s", exc)
+        logger.error("ingest_pdf: Unexpected error ΓÇö %s", exc)
         return {"status": "error", "filename": filename, "message": f"Ingestion failed: {exc}"}
 
 
@@ -77,27 +77,27 @@ def search_documents(
         Tuple of (source_documents list, formatted context string).
     """
     if vector_store is None or vector_store.is_empty():
-        logger.warning("search_documents: Vector store is empty — returning mock context.")
+        logger.warning("search_documents: Vector store is empty ΓÇö returning mock context.")
         return _get_mock_sources(), _get_mock_context()
 
     sources = vector_store.similarity_search(query, k=k)
 
     if not sources:
-        logger.warning("search_documents: No results found — returning mock context.")
+        logger.warning("search_documents: No results found ΓÇö returning mock context.")
         return _get_mock_sources(), _get_mock_context()
 
     # Format context string for LLM consumption
     context_parts = []
     for i, src in enumerate(sources, 1):
         context_parts.append(
-            f"[Document {i} — Source: {src['source']}, Page {src['page']}]\n{src['chunk']}"
+            f"[Document {i} ΓÇö Source: {src['source']}, Page {src['page']}]\n{src['chunk']}"
         )
     context = "\n\n---\n\n".join(context_parts)
 
     return sources, context
 
 
-# ── Fallback mock context (used when no PDFs have been uploaded) ──────────────
+# ΓöÇΓöÇ Fallback mock context (used when no PDFs have been uploaded) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def _get_mock_sources() -> List[Dict[str, Any]]:
     return [

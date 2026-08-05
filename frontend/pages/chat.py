@@ -1,4 +1,4 @@
-"""
+﻿"""
 LexFusion Single-Shot RAG Assistant Page
 =========================================
 Simple, clean conversational chat interface for asking direct
@@ -7,6 +7,19 @@ Supports multilingual responses via the sidebar language selector.
 """
 
 from __future__ import annotations
+
+import os
+import sys
+
+# Ensure the frontend directory is on sys.path so that relative imports
+# (utils, components) resolve correctly regardless of invocation CWD.
+_here = os.path.dirname(os.path.abspath(__file__))           # .../frontend/pages
+_frontend = os.path.abspath(os.path.join(_here, ".."))       # .../frontend
+_project_root = os.path.abspath(os.path.join(_frontend, ".."))  # project root
+
+for _p in (_project_root, _frontend):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import streamlit as st
 from utils.api_client import LexFusionAPIClient
@@ -17,7 +30,7 @@ def render_chat_page(client: LexFusionAPIClient):
     """Renders the single-shot RAG Chat assistant."""
     # Read selected language from sidebar session state
     language = st.session_state.get("selected_language", "English")
-    lang_flag = "🌍" if language != "English" else "💬"
+    lang_flag = "≡ƒîì" if language != "English" else "≡ƒÆ¼"
 
     st.markdown(
         f"""
@@ -37,7 +50,7 @@ def render_chat_page(client: LexFusionAPIClient):
                 color: #c9a84c;
                 font-weight: 600;
             ">
-                🌐 Responding in: {language}
+                ≡ƒîÉ Responding in: {language}
             </span>
         </div>
         """,

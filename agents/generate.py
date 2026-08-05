@@ -1,10 +1,10 @@
-"""
-LexFusion Cross-Examine — Main Agent Entry Point
+﻿"""
+LexFusion Cross-Examine ΓÇö Main Agent Entry Point
 =================================================
 Public interface for the agents module. Exposes two primary functions:
 
-  1. generate_answer()  — Single-shot RAG: retrieve + synthesize, no debate.
-  2. run_debate()       — Full Cross-Examine debate via the LangGraph graph.
+  1. generate_answer()  ΓÇö Single-shot RAG: retrieve + synthesize, no debate.
+  2. run_debate()       ΓÇö Full Cross-Examine debate via the LangGraph graph.
 
 The backend (api/main.py) calls these functions directly.
 """
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def _get_api_key() -> str:
     """
-    Read Groq API key — checks Streamlit secrets first (for Streamlit Cloud),
+    Read Groq API key ΓÇö checks Streamlit secrets first (for Streamlit Cloud),
     then falls back to environment variable (for local .env usage).
     """
     try:
@@ -42,19 +42,19 @@ def _get_api_key() -> str:
     return os.getenv("GROQ_API_KEY", "")
 
 
-# ── Single-Shot RAG Answer ────────────────────────────────────────────────────
+# ΓöÇΓöÇ Single-Shot RAG Answer ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 SINGLE_SHOT_SYSTEM = """
 You are LexFusion, an expert AI legal research assistant.
 Answer the user's legal question based ONLY on the provided context documents.
 Be precise, cite relevant sections, and always end with a legal disclaimer.
-If the context is insufficient, say so explicitly — never hallucinate.
+If the context is insufficient, say so explicitly ΓÇö never hallucinate.
 
 Structure your answer:
-1. **Direct Answer** — Concise response to the question.
-2. **Legal Basis** — Cite clauses/sections from the context.
-3. **Analysis** — Brief reasoning.
-4. **Disclaimer** — Standard legal disclaimer.
+1. **Direct Answer** ΓÇö Concise response to the question.
+2. **Legal Basis** ΓÇö Cite clauses/sections from the context.
+3. **Analysis** ΓÇö Brief reasoning.
+4. **Disclaimer** ΓÇö Standard legal disclaimer.
 
 LANGUAGE DIRECTIVE:
 {language_directive}
@@ -124,7 +124,7 @@ def generate_answer(
         answer_text = response.content.strip()
         logger.info("generate_answer: LLM call successful for query: %s...", query[:60])
     except Exception as exc:
-        logger.error("generate_answer: LLM call failed — %s", exc)
+        logger.error("generate_answer: LLM call failed ΓÇö %s", exc)
         raise RuntimeError(f"LLM inference failed: {exc}") from exc
 
     return GenerateResponse(
@@ -144,9 +144,9 @@ def _estimate_single_confidence(answer: str, context: str) -> int:
     context_len = len(context.split())
 
     if context_len < 50:
-        return 30  # Very little context → low confidence
+        return 30  # Very little context ΓåÆ low confidence
     if answer_len < 30:
-        return 40  # Very short answer → uncertain
+        return 40  # Very short answer ΓåÆ uncertain
     if "insufficient" in answer.lower() or "cannot determine" in answer.lower():
         return 25  # LLM admitted uncertainty
     if context_len > 500 and answer_len > 100:
@@ -154,7 +154,7 @@ def _estimate_single_confidence(answer: str, context: str) -> int:
     return 65  # Default moderate confidence
 
 
-# ── Full Cross-Examine Debate ─────────────────────────────────────────────────
+# ΓöÇΓöÇ Full Cross-Examine Debate ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 
 def run_debate(
@@ -218,10 +218,10 @@ def run_debate(
             final_state.get("confidence_score"),
         )
     except Exception as exc:
-        logger.error("run_debate: Graph execution failed — %s", exc)
+        logger.error("run_debate: Graph execution failed ΓÇö %s", exc)
         raise RuntimeError(f"Debate graph execution failed: {exc}") from exc
 
-    # Coerce argument_history dicts → DebateRound models
+    # Coerce argument_history dicts ΓåÆ DebateRound models
     history = [
         DebateRound(**entry) for entry in final_state.get("argument_history", [])
     ]
