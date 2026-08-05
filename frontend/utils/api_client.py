@@ -1,8 +1,8 @@
-﻿"""
+"""
 LexFusion Frontend API Client
 ==============================
 Communicates with the FastAPI backend if available (local server mode).
-If the backend is offline, falls back to Local Direct Mode ΓÇö running the
+If the backend is offline, falls back to Local Direct Mode — running the
 full RAG pipeline and LangGraph agents directly in-process.
 
 This is the primary execution path on Streamlit Cloud, where no
@@ -27,16 +27,16 @@ logger = logging.getLogger(__name__)
 # Backend API configuration
 API_BASE_URL = os.getenv("LEXFUSION_API_URL", "http://localhost:8000")
 
-# ΓöÇΓöÇ Try importing agents (LangGraph debate pipeline) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Try importing agents (LangGraph debate pipeline) ─────────────────────────
 
 try:
     from agents.generate import generate_answer, run_debate
     LOCAL_AGENTS_AVAILABLE = True
 except ImportError:
     LOCAL_AGENTS_AVAILABLE = False
-    logger.warning("agents package not importable ΓÇö local agent mode unavailable.")
+    logger.warning("agents package not importable — local agent mode unavailable.")
 
-# ΓöÇΓöÇ Try importing backend RAG pipeline ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Try importing backend RAG pipeline ───────────────────────────────────────
 
 try:
     from backend import ingest_pdf as _backend_ingest, search_documents as _backend_search
@@ -44,7 +44,7 @@ try:
     LOCAL_BACKEND_AVAILABLE = True
 except ImportError:
     LOCAL_BACKEND_AVAILABLE = False
-    logger.warning("backend package not importable ΓÇö RAG pipeline unavailable.")
+    logger.warning("backend package not importable — RAG pipeline unavailable.")
 
 
 class LexFusionAPIClient:
@@ -67,12 +67,12 @@ class LexFusionAPIClient:
                 self.vector_store = LexFusionVectorStore()
                 logger.info("LexFusionAPIClient: In-memory vector store initialized.")
             except Exception as exc:
-                logger.error("LexFusionAPIClient: Failed to initialize vector store ΓÇö %s", exc)
+                logger.error("LexFusionAPIClient: Failed to initialize vector store — %s", exc)
 
         if self.local_mode:
             logger.info("LexFusion: Running in LOCAL DIRECT mode (Streamlit Cloud compatible).")
         else:
-            logger.info("LexFusion: FastAPI backend detected ΓÇö running in API mode.")
+            logger.info("LexFusion: FastAPI backend detected — running in API mode.")
 
     def _ensure_vector_store(self):
         """
@@ -85,17 +85,17 @@ class LexFusionAPIClient:
             try:
                 self.vector_store = LexFusionVectorStore()
             except Exception as exc:
-                logger.error("_ensure_vector_store: could not create store ΓÇö %s", exc)
+                logger.error("_ensure_vector_store: could not create store — %s", exc)
                 return None
         # Quick health-check: if stats throws, reinit
         try:
             self.vector_store.get_stats()
         except Exception as exc:
-            logger.warning("Vector store unhealthy (%s) ΓÇö reinitialising.", exc)
+            logger.warning("Vector store unhealthy (%s) — reinitialising.", exc)
             try:
                 self.vector_store = LexFusionVectorStore()
             except Exception as exc2:
-                logger.error("Reinit failed ΓÇö %s", exc2)
+                logger.error("Reinit failed — %s", exc2)
                 self.vector_store = None
         return self.vector_store
 
@@ -107,14 +107,14 @@ class LexFusionAPIClient:
         except requests.RequestException:
             return False
 
-    # ΓöÇΓöÇ Document Ingestion ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Document Ingestion ────────────────────────────────────────────────────
 
     def upload_document(self, file_name: str, file_content: bytes) -> dict[str, Any]:
         """
         Ingest a PDF document into the vector store.
 
         In API mode: POSTs to /upload.
-        In local mode: runs the full extract ΓåÆ chunk ΓåÆ embed ΓåÆ index pipeline.
+        In local mode: runs the full extract → chunk → embed → index pipeline.
         """
         # Try API mode first
         if not self.local_mode:
@@ -123,9 +123,9 @@ class LexFusionAPIClient:
                 response = requests.post(f"{self.api_url}/upload", files=files, timeout=60)
                 if response.status_code == 200:
                     return response.json()
-                logger.warning("API upload failed (status %s) ΓÇö falling back to local.", response.status_code)
+                logger.warning("API upload failed (status %s) — falling back to local.", response.status_code)
             except requests.RequestException as err:
-                logger.warning("API upload request failed: %s ΓÇö falling back to local.", err)
+                logger.warning("API upload request failed: %s — falling back to local.", err)
 
         # Local direct mode: run ingestion pipeline in-process
         if LOCAL_BACKEND_AVAILABLE and self._ensure_vector_store() is not None:
@@ -135,7 +135,7 @@ class LexFusionAPIClient:
         return {
             "status": "success",
             "filename": file_name,
-            "message": f"Ingested {file_name} (mock ΓÇö backend unavailable).",
+            "message": f"Ingested {file_name} (mock — backend unavailable).",
         }
 
     def get_stats(self) -> dict[str, Any]:
@@ -153,7 +153,7 @@ class LexFusionAPIClient:
 
         return {"chunk_count": 0, "status": "empty"}
 
-    # ΓöÇΓöÇ Query / Debate ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Query / Debate ────────────────────────────────────────────────────────
 
     def query(
         self,
@@ -164,7 +164,7 @@ class LexFusionAPIClient:
         language: str = "English",
     ) -> dict[str, Any]:
         """
-        Run a legal query ΓÇö either single-shot RAG or full Cross-Examine debate.
+        Run a legal query — either single-shot RAG or full Cross-Examine debate.
 
         Args:
             query:       Legal question from the user.
@@ -176,7 +176,7 @@ class LexFusionAPIClient:
         Returns:
             Dict matching GenerateResponse or DebateResponse model structure.
         """
-        # ΓöÇΓöÇ API Mode ΓöÇΓöÇ
+        # ── API Mode ──
         if not self.local_mode:
             try:
                 payload: dict[str, Any] = {
@@ -194,13 +194,13 @@ class LexFusionAPIClient:
                 if response.status_code == 200:
                     return response.json()
                 logger.warning(
-                    "API query failed (status %s) ΓÇö falling back to local.",
+                    "API query failed (status %s) — falling back to local.",
                     response.status_code,
                 )
             except requests.RequestException as err:
-                logger.warning("API query failed: %s ΓÇö falling back to local.", err)
+                logger.warning("API query failed: %s — falling back to local.", err)
 
-        # ΓöÇΓöÇ Local Direct Mode ΓöÇΓöÇ
+        # ── Local Direct Mode ──
         if not LOCAL_AGENTS_AVAILABLE:
             return {
                 "status": "error",

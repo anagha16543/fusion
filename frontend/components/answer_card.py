@@ -1,4 +1,4 @@
-﻿"""
+"""
 LexFusion Answer Card Component
 ================================
 Renders clean UI cards for answers, sources, disclaimers,
@@ -53,13 +53,13 @@ def render_source_cards(sources: list[dict]):
         st.markdown("*No document sources cited.*")
         return
 
-    st.markdown("### ≡ƒôé Cited Legal Evidence")
+    st.markdown("### 📂 Cited Legal Evidence")
     for idx, doc in enumerate(sources):
         source_name = doc.get("source", "Unknown Document")
         page = doc.get("page", "?")
         chunk_text = doc.get("chunk", "")
 
-        with st.expander(f"≡ƒôä Source #{idx+1}: {source_name} (Page {page})"):
+        with st.expander(f"📄 Source #{idx+1}: {source_name} (Page {page})"):
             safe_chunk = html.escape(chunk_text)
             st.markdown(
                 f"""
@@ -80,7 +80,7 @@ def render_synthesis_card(synthesis: str, confidence_score: int):
         <div class="glass-card" style="border-color: rgba(139, 92, 246, 0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="court-title" style="font-size: 1.4rem; font-weight: bold; color: #a78bfa;">
-                    ΓÜû∩╕Å Presiding Judge Findings
+                    ⚖️ Presiding Judge Findings
                 </span>
                 <span class="status-badge badge-judge">RULING DELIVERED</span>
             </div>

@@ -1,4 +1,4 @@
-﻿"""
+"""
 LexFusion Advocate Column Component
 ====================================
 Static (non-animated) fallback renderer for debate rounds.
@@ -17,7 +17,7 @@ def render_debate_rounds(history: list[dict]):
         st.info("No debate history available.")
         return
 
-    st.markdown("### ≡ƒÅ¢∩╕Å Courtroom Debate Logs")
+    st.markdown("### 🏛️ Courtroom Debate Logs")
 
     # Group by round number
     rounds: dict[int, list[dict]] = {}
@@ -29,7 +29,7 @@ def render_debate_rounds(history: list[dict]):
         st.markdown(
             f"""
             <div style="text-align:center; margin:28px 0 16px;">
-                <span class="round-label">ΓÜö∩╕Å &nbsp; DEBATE ROUND {r_num} &nbsp; ΓÜö∩╕Å</span>
+                <span class="round-label">⚔️ &nbsp; DEBATE ROUND {r_num} &nbsp; ⚔️</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -46,7 +46,7 @@ def render_debate_rounds(history: list[dict]):
                     <div class="glass-card advocate-card advocate-prosecution advocate-enter-left">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                             <span style="font-weight:700; color:#f59e0b; font-size:0.95rem;">
-                                ≡ƒ¢í∩╕Å Advocate A
+                                🛡️ Advocate A
                             </span>
                             <span class="status-badge badge-prosecution">PROSECUTION</span>
                         </div>
@@ -70,7 +70,7 @@ def render_debate_rounds(history: list[dict]):
                     <div class="glass-card advocate-card advocate-defence advocate-enter-right">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                             <span style="font-weight:700; color:#3b82f6; font-size:0.95rem;">
-                                ΓÜû∩╕Å Advocate B
+                                ⚖️ Advocate B
                             </span>
                             <span class="status-badge badge-defence">DEFENCE</span>
                         </div>

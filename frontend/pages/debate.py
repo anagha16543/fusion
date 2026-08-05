@@ -1,8 +1,8 @@
-﻿"""
+"""
 LexFusion Cross-Examine Debate Page
 ====================================
 Animated courtroom debate: arguments are revealed one by one
-(Advocate A ΓåÆ Advocate B ΓåÆ next round ΓåÆ ... ΓåÆ Judge ruling).
+(Advocate A → Advocate B → next round → ... → Judge ruling).
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import streamlit as st
 from utils.api_client import LexFusionAPIClient
 from components.answer_card import render_synthesis_card, render_source_cards
 
-# ΓöÇΓöÇ Animated argument card HTML builders ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Animated argument card HTML builders ─────────────────────────────────────
 
 def _prosecution_card(argument: str, round_num: int) -> str:
     safe = html.escape(argument)
@@ -32,7 +32,7 @@ def _prosecution_card(argument: str, round_num: int) -> str:
          style="animation-delay:0.05s">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <span style="font-weight:700; color:#f59e0b; font-size:0.95rem;">
-                ≡ƒ¢í∩╕Å Advocate A &nbsp;<span style="font-size:0.78rem; color:var(--text-muted);">Round {round_num}</span>
+                🛡️ Advocate A &nbsp;<span style="font-size:0.78rem; color:var(--text-muted);">Round {round_num}</span>
             </span>
             <span class="status-badge badge-prosecution">PROSECUTION</span>
         </div>
@@ -47,7 +47,7 @@ def _defence_card(argument: str, round_num: int) -> str:
          style="animation-delay:0.05s">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <span style="font-weight:700; color:#3b82f6; font-size:0.95rem;">
-                ΓÜû∩╕Å Advocate B &nbsp;<span style="font-size:0.78rem; color:var(--text-muted);">Round {round_num}</span>
+                ⚖️ Advocate B &nbsp;<span style="font-size:0.78rem; color:var(--text-muted);">Round {round_num}</span>
             </span>
             <span class="status-badge badge-defence">DEFENCE</span>
         </div>
@@ -57,7 +57,7 @@ def _defence_card(argument: str, round_num: int) -> str:
 
 def _waiting_card(side: str) -> str:
     label = "Prosecution" if side == "A" else "Defence"
-    icon  = "≡ƒ¢í∩╕Å" if side == "A"  else "ΓÜû∩╕Å"
+    icon  = "🛡️" if side == "A"  else "⚖️"
     cls   = "advocate-prosecution" if side == "A" else "advocate-defence"
     return f"""
     <div class="glass-card advocate-card {cls}" style="opacity:0.6;">
@@ -71,11 +71,11 @@ def _waiting_card(side: str) -> str:
 def _round_header(r_num: int) -> str:
     return f"""
     <div class="round-header-enter" style="text-align:center; margin:28px 0 16px;">
-        <span class="round-label">ΓÜö∩╕Å &nbsp; DEBATE ROUND {r_num} &nbsp; ΓÜö∩╕Å</span>
+        <span class="round-label">⚔️ &nbsp; DEBATE ROUND {r_num} &nbsp; ⚔️</span>
     </div>"""
 
 
-# ΓöÇΓöÇ Animated playback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Animated playback ─────────────────────────────────────────────────────────
 
 def _animate_debate(history: list[dict], synthesis: str, confidence: int, sources: list[dict]):
     """
@@ -90,7 +90,7 @@ def _animate_debate(history: list[dict], synthesis: str, confidence: int, source
             rounds[r] = {}
         rounds[r][entry.get("advocate")] = entry.get("argument", "")
 
-    st.markdown("### ≡ƒÅ¢∩╕Å Courtroom Debate ΓÇö Live Session")
+    st.markdown("### 🏛️ Courtroom Debate — Live Session")
 
     # One placeholder per round-side combination so we can update in place
     for r_num in sorted(rounds.keys()):
@@ -101,7 +101,7 @@ def _animate_debate(history: list[dict], synthesis: str, confidence: int, source
 
         col_a, col_b = st.columns(2)
 
-        # ΓöÇΓöÇ Advocate A speaks first ΓöÇΓöÇ
+        # ── Advocate A speaks first ──
         with col_a:
             slot_a = st.empty()
             slot_a.markdown(_waiting_card("A"), unsafe_allow_html=True)
@@ -126,7 +126,7 @@ def _animate_debate(history: list[dict], synthesis: str, confidence: int, source
         if r_num < max(rounds.keys()):
             time.sleep(0.8)
 
-    # ΓöÇΓöÇ Judge ruling entrance ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Judge ruling entrance ─────────────────────────────────────────────────
     st.markdown(
         "<hr style='border-color:rgba(255,255,255,0.08); margin:30px 0;' />",
         unsafe_allow_html=True,
@@ -137,7 +137,7 @@ def _animate_debate(history: list[dict], synthesis: str, confidence: int, source
         """
         <div class="glass-card" style="border-color:rgba(139,92,246,0.3); text-align:center; padding:30px; opacity:0.5;">
             <span class="court-title" style="color:#a78bfa; font-size:1.2rem;">
-                ΓÜû∩╕Å Presiding Judge deliberating...
+                ⚖️ Presiding Judge deliberating...
             </span>
             <div class="dot-flashing" style="justify-content:center; display:flex; margin-top:12px;">
                 <span></span><span></span><span></span>
@@ -161,21 +161,21 @@ def _animate_debate(history: list[dict], synthesis: str, confidence: int, source
     render_source_cards(sources)
 
 
-# ΓöÇΓöÇ Page render ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Page render ───────────────────────────────────────────────────────────────
 
 def render_debate_page(client: LexFusionAPIClient):
     """Renders the adversarial debate page."""
     language = st.session_state.get("selected_language", "English")
-    lang_flag = "≡ƒîì" if language != "English" else "ΓÜû∩╕Å"
+    lang_flag = "🌍" if language != "English" else "⚖️"
 
     st.markdown(
         f"""
         <div style="margin-bottom:22px;">
             <h1 class="court-title" style="font-size:2.2rem; margin-bottom:5px;">
-                ≡ƒÅ¢∩╕Å Cross-Examine <span class="gold-text">Debate Chamber</span>
+                🏛️ Cross-Examine <span class="gold-text">Debate Chamber</span>
             </h1>
             <p style="color:var(--text-secondary); font-size:1rem;">
-                Adversarial AI debate between Prosecution and Defence ΓÇö arguments revealed live, one by one.
+                Adversarial AI debate between Prosecution and Defence — arguments revealed live, one by one.
             </p>
             <span style="
                 background:rgba(201,168,76,0.1);
@@ -191,15 +191,15 @@ def render_debate_page(client: LexFusionAPIClient):
         unsafe_allow_html=True,
     )
 
-    # ΓöÇΓöÇ Inline settings bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Inline settings bar ───────────────────────────────────────────────────
     sc1, sc2 = st.columns([1, 1])
     with sc1:
-        debate_rounds = st.slider("ΓÜö∩╕Å Debate Rounds", min_value=1, max_value=3, value=2)
+        debate_rounds = st.slider("⚔️ Debate Rounds", min_value=1, max_value=3, value=2)
     with sc2:
-        top_k = st.slider("≡ƒöì Evidence Chunks (Top K)", min_value=3, max_value=10, value=5)
+        top_k = st.slider("🔍 Evidence Chunks (Top K)", min_value=3, max_value=10, value=5)
 
-    # ΓöÇΓöÇ Query input ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    st.markdown("### ≡ƒô£ File an Argument")
+    # ── Query input ───────────────────────────────────────────────────────────
+    st.markdown("### 📜 File an Argument")
     user_query = st.text_area(
         "Define the legal issue/dispute to cross-examine:",
         placeholder="e.g., Is the vendor liable for damages if a data breach occurs due to a third-party API outage?",
@@ -207,7 +207,7 @@ def render_debate_page(client: LexFusionAPIClient):
         key="debate_query_input",
     )
 
-    start_debate = st.button("ΓÜû∩╕Å Convene Courtroom", use_container_width=True, type="primary")
+    start_debate = st.button("⚖️ Convene Courtroom", use_container_width=True, type="primary")
 
     if start_debate:
         if not user_query.strip():
@@ -218,7 +218,7 @@ def render_debate_page(client: LexFusionAPIClient):
         st.session_state.pop("active_debate", None)
 
         with st.status(
-            f"≡ƒÅ¢∩╕Å Court is in session ΓÇö running Agentic Graph in {language}...",
+            f"🏛️ Court is in session — running Agentic Graph in {language}...",
             expanded=True,
         ) as status:
             status.update(label=f"Advocates preparing arguments in {language}...", state="running")
@@ -240,15 +240,15 @@ def render_debate_page(client: LexFusionAPIClient):
                 st.error(f"Court session aborted: {response.get('error_message', 'Execution failed.')}")
                 return
 
-    # ΓöÇΓöÇ Animated debate display ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Animated debate display ───────────────────────────────────────────────
     if "active_debate" in st.session_state:
         res = st.session_state.active_debate
         debate_lang = st.session_state.get("active_debate_language", "English")
 
         if debate_lang != language:
             st.info(
-                f"Γä╣∩╕Å This debate was in **{debate_lang}**. "
-                f"Press 'ΓÜû∩╕Å Convene Courtroom' to re-run in **{language}**."
+                f"ℹ️ This debate was in **{debate_lang}**. "
+                f"Press '⚖️ Convene Courtroom' to re-run in **{language}**."
             )
 
         # Only animate on the first render after a new debate finishes.

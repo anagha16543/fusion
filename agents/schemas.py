@@ -1,5 +1,5 @@
-﻿"""
-LexFusion Cross-Examine ΓÇö Pydantic Schemas for Agent State
+"""
+LexFusion Cross-Examine — Pydantic Schemas for Agent State
 ===========================================================
 Defines the TypedDict state that flows through the LangGraph debate graph,
 plus Pydantic response models for API serialization.
@@ -12,7 +12,7 @@ from typing_extensions import TypedDict
 from pydantic import BaseModel, Field, field_validator
 
 
-# ΓöÇΓöÇ LangGraph Agent State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── LangGraph Agent State ────────────────────────────────────────────────────
 
 
 class DebateState(TypedDict, total=False):
@@ -28,7 +28,7 @@ class DebateState(TypedDict, total=False):
         argument_history:     Full ordered list of all arguments across all rounds.
         current_round:        Current debate round number (starts at 1).
         synthesis:            Final judge ruling / synthesis text.
-        confidence_score:     Integer 0ΓÇô100 extracted from synthesis.
+        confidence_score:     Integer 0–100 extracted from synthesis.
         status:               "running" | "complete" | "error"
         error_message:        Human-readable error string if status == "error".
         language:             Language for all agent responses (default: "English").
@@ -48,7 +48,7 @@ class DebateState(TypedDict, total=False):
     language: str
 
 
-# ΓöÇΓöÇ Pydantic API Response Models ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Pydantic API Response Models ─────────────────────────────────────────────
 
 
 class DebateRound(BaseModel):
@@ -78,7 +78,7 @@ class DebateResponse(BaseModel):
         default=50,
         ge=0,
         le=100,
-        description="AI confidence (0ΓÇô100%) in the legal finding.",
+        description="AI confidence (0–100%) in the legal finding.",
     )
     source_documents: list[dict[str, Any]] = Field(
         default_factory=list,

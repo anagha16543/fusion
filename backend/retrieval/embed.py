@@ -1,8 +1,8 @@
-﻿"""
-LexFusion ΓÇö Embedding Model
+"""
+LexFusion — Embedding Model
 ============================
 Singleton wrapper for sentence-transformers/all-MiniLM-L6-v2.
-Runs fully in-process ΓÇö no external API key required.
+Runs fully in-process — no external API key required.
 Cached at module level to avoid reloading the model on each call.
 """
 
@@ -22,7 +22,7 @@ os.environ.setdefault("USE_TF", "0")
 
 logger = logging.getLogger(__name__)
 
-# Module-level singleton ΓÇö loaded once per Python process
+# Module-level singleton — loaded once per Python process
 _embeddings_instance = None
 
 

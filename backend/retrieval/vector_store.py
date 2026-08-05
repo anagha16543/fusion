@@ -1,5 +1,5 @@
-﻿"""
-LexFusion ΓÇö ChromaDB In-Memory Vector Store
+"""
+LexFusion — ChromaDB In-Memory Vector Store
 =============================================
 Uses chromadb 0.4.x Client() (in-memory, no disk I/O).
 Self-healing: reinitialises on stale-connection errors.
@@ -69,7 +69,7 @@ class LexFusionVectorStore:
         )
         logger.info("LexFusionVectorStore: ChromaDB initialised (collection=%s).", COLLECTION_NAME)
 
-    # ΓöÇΓöÇ Write ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Write ──────────────────────────────────────────────────
 
     def add_documents(self, docs: list) -> int:
         if not docs:
@@ -77,7 +77,7 @@ class LexFusionVectorStore:
         try:
             self._store.add_documents(docs)
         except Exception as exc:
-            logger.warning("add_documents failed (%s) ΓÇö reinitialising and retrying.", exc)
+            logger.warning("add_documents failed (%s) — reinitialising and retrying.", exc)
             self._init_store()
             self._store.add_documents(docs)  # let this raise if still broken
 
@@ -85,13 +85,13 @@ class LexFusionVectorStore:
         logger.info("LexFusionVectorStore: added %d chunks.", count)
         return count
 
-    # ΓöÇΓöÇ Read ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Read ───────────────────────────────────────────────────
 
     def similarity_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         try:
             results = self._store.similarity_search(query, k=k)
         except Exception as exc:
-            logger.warning("similarity_search failed (%s) ΓÇö reinitialising.", exc)
+            logger.warning("similarity_search failed (%s) — reinitialising.", exc)
             self._init_store()
             try:
                 results = self._store.similarity_search(query, k=k)
@@ -124,7 +124,7 @@ class LexFusionVectorStore:
             self._init_store()
             logger.info("LexFusionVectorStore: cleared.")
         except Exception as exc:
-            logger.error("LexFusionVectorStore: clear failed ΓÇö %s", exc)
+            logger.error("LexFusionVectorStore: clear failed — %s", exc)
 
     def is_empty(self) -> bool:
         return self.get_stats()["chunk_count"] == 0

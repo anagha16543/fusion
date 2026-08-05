@@ -1,5 +1,5 @@
-﻿"""
-LexFusion ΓÇö Primary Streamlit Application Entry Point
+"""
+LexFusion — Primary Streamlit Application Entry Point
 ======================================================
 Top-navigation bar layout with dark/light theme toggle.
 Debate page uses animated step-by-step argument reveal.
@@ -11,7 +11,7 @@ import os
 import sys
 import streamlit as st
 
-# ΓöÇΓöÇ Path Setup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Path Setup ────────────────────────────────────────────────────────────────
 _here = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.abspath(os.path.join(_here, ".."))
 for _p in (_project_root, _here):
@@ -22,7 +22,7 @@ from utils.api_client import LexFusionAPIClient
 from pages.chat import render_chat_page
 from pages.debate import render_debate_page
 
-# ΓöÇΓöÇ 50 Supported Languages ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── 50 Supported Languages ────────────────────────────────────────────────────
 SUPPORTED_LANGUAGES = [
     "English", "Spanish", "French", "German", "Italian", "Dutch", "Portuguese",
     "Russian", "Polish", "Swedish", "Norwegian", "Danish", "Finnish", "Greek",
@@ -37,8 +37,8 @@ SUPPORTED_LANGUAGES = [
 ]
 
 st.set_page_config(
-    page_title="LexFusion ΓÇö Law RAG Workflow Automation",
-    page_icon="ΓÜû∩╕Å",
+    page_title="LexFusion — Law RAG Workflow Automation",
+    page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -59,7 +59,7 @@ def apply_theme(dark: bool):
     a full hard-coded override block on every render.
     """
     if dark:
-        # Dark theme ΓÇö these are the base styles already in style.css,
+        # Dark theme — these are the base styles already in style.css,
         # but we reinforce the most important ones here.
         st.markdown("""
         <style>
@@ -104,10 +104,10 @@ def apply_theme(dark: bool):
         </style>
         """, unsafe_allow_html=True)
     else:
-        # Light theme ΓÇö fully override every Streamlit dark default
+        # Light theme — fully override every Streamlit dark default
         st.markdown("""
         <style>
-        /* ΓöÇΓöÇ Full-page light background ΓöÇΓöÇ */
+        /* ── Full-page light background ── */
         html, body,
         .stApp, .stApp > div,
         [data-testid="stAppViewContainer"],
@@ -123,7 +123,7 @@ def apply_theme(dark: bool):
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ All text ΓöÇΓöÇ */
+        /* ── All text ── */
         p, span, div, li, td, th, a,
         h1, h2, h3, h4, h5, h6,
         label, small, strong, em,
@@ -133,13 +133,13 @@ def apply_theme(dark: bool):
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Navbar ΓöÇΓöÇ */
+        /* ── Navbar ── */
         .top-navbar {
             background: rgba(248,246,240,0.97) !important;
             border-bottom-color: rgba(0,0,0,0.1) !important;
         }
 
-        /* ΓöÇΓöÇ Inputs ΓöÇΓöÇ */
+        /* ── Inputs ── */
         .stTextInput input,
         .stTextArea textarea,
         [data-testid="stTextInput"] input,
@@ -150,7 +150,7 @@ def apply_theme(dark: bool):
             border-color: rgba(0,0,0,0.15) !important;
         }
 
-        /* ΓöÇΓöÇ Selectbox ΓöÇΓöÇ */
+        /* ── Selectbox ── */
         [data-testid="stSelectbox"] > div > div,
         [data-testid="stSelectbox"] * {
             background-color: #ffffff !important;
@@ -158,7 +158,7 @@ def apply_theme(dark: bool):
             border-color: rgba(0,0,0,0.15) !important;
         }
 
-        /* ΓöÇΓöÇ Expander ΓöÇΓöÇ */
+        /* ── Expander ── */
         [data-testid="stExpander"],
         [data-testid="stExpander"] > div,
         [data-testid="stExpanderDetails"] {
@@ -171,7 +171,7 @@ def apply_theme(dark: bool):
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Buttons ΓöÇΓöÇ */
+        /* ── Buttons ── */
         .stButton > button[kind="secondary"] {
             background-color: #ffffff !important;
             color: #1a1a2e !important;
@@ -181,7 +181,7 @@ def apply_theme(dark: bool):
             background-color: #f0ede4 !important;
         }
 
-        /* ΓöÇΓöÇ File uploader ΓöÇΓöÇ */
+        /* ── File uploader ── */
         [data-testid="stFileUploader"],
         [data-testid="stFileUploader"] > div,
         [data-testid="stFileDropzoneInstructions"],
@@ -196,34 +196,34 @@ def apply_theme(dark: bool):
             color: #4b5563 !important;
         }
 
-        /* ΓöÇΓöÇ Slider ΓöÇΓöÇ */
+        /* ── Slider ── */
         [data-testid="stSlider"] label,
         [data-testid="stSlider"] p {
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Alert / success / error boxes ΓöÇΓöÇ */
+        /* ── Alert / success / error boxes ── */
         [data-testid="stAlert"],
         div[role="alert"] {
             background-color: #ffffff !important;
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Status widget ΓöÇΓöÇ */
+        /* ── Status widget ── */
         [data-testid="stStatusWidget"],
         [data-testid="stStatusWidget"] * {
             background-color: #f0ede4 !important;
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Chat message ΓöÇΓöÇ */
+        /* ── Chat message ── */
         [data-testid="stChatMessage"],
         [data-testid="stChatMessage"] > div {
             background-color: #ffffff !important;
             color: #1a1a2e !important;
         }
 
-        /* ΓöÇΓöÇ Custom glass cards for light mode ΓöÇΓöÇ */
+        /* ── Custom glass cards for light mode ── */
         .glass-card {
             background: rgba(255,255,255,0.9) !important;
             border-color: rgba(0,0,0,0.08) !important;
@@ -237,19 +237,19 @@ def apply_theme(dark: bool):
             color: #374151 !important;
         }
 
-        /* ΓöÇΓöÇ HR ΓöÇΓöÇ */
+        /* ── HR ── */
         hr { border-color: rgba(0,0,0,0.1) !important; }
 
-        /* ΓöÇΓöÇ Scrollbar ΓöÇΓöÇ */
+        /* ── Scrollbar ── */
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04) !important; }
         ::-webkit-scrollbar-thumb { background: rgba(160,124,40,0.3) !important; }
 
-        /* ΓöÇΓöÇ Gold text in light mode ΓöÇΓöÇ */
+        /* ── Gold text in light mode ── */
         .gold-text { color: #a07c28 !important; text-shadow: none !important; }
         .round-label { color: #a07c28 !important; }
         .navbar-brand { color: #a07c28 !important; text-shadow: none !important; }
 
-        /* ΓöÇΓöÇ Column backgrounds ΓöÇΓöÇ */
+        /* ── Column backgrounds ── */
         [data-testid="column"],
         [data-testid="stHorizontalBlock"] {
             background-color: transparent !important;
@@ -261,7 +261,7 @@ def apply_theme(dark: bool):
 def main():
     load_custom_css()
 
-    # ΓöÇΓöÇ Session defaults ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Session defaults ──────────────────────────────────────────────────────
     if "dark_mode" not in st.session_state:
         st.session_state.dark_mode = True
     if "app_mode" not in st.session_state:
@@ -272,21 +272,21 @@ def main():
     # Apply theme on every render
     apply_theme(st.session_state.dark_mode)
 
-    # ΓöÇΓöÇ Initialize API client ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Initialize API client ─────────────────────────────────────────────────
     if "api_client" not in st.session_state:
-        with st.spinner("≡ƒÅ¢∩╕Å Initializing LexFusion ΓÇö loading embedding model..."):
+        with st.spinner("🏛️ Initializing LexFusion — loading embedding model..."):
             st.session_state.api_client = LexFusionAPIClient()
     client: LexFusionAPIClient = st.session_state.api_client
 
-    # ΓöÇΓöÇ Stats for navbar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Stats for navbar ──────────────────────────────────────────────────────
     stats = client.get_stats()
     chunk_count = stats.get("chunk_count", 0)
-    mode_dot   = "≡ƒƒí" if client.local_mode else "≡ƒƒó"
+    mode_dot   = "🟡" if client.local_mode else "🟢"
     mode_label = "LOCAL" if client.local_mode else "API"
-    theme_icon = "≡ƒîÖ" if st.session_state.dark_mode else "ΓÿÇ∩╕Å"
+    theme_icon = "🌙" if st.session_state.dark_mode else "☀️"
     theme_label = "Dark" if st.session_state.dark_mode else "Light"
 
-    # ΓöÇΓöÇ Top Navbar (pure HTML ΓÇö rendered first so it sits above everything) ΓöÇΓöÇΓöÇ
+    # ── Top Navbar (pure HTML — rendered first so it sits above everything) ───
     chat_active    = "active" if st.session_state.app_mode == "chat"    else ""
     debate_active  = "active" if st.session_state.app_mode == "debate"  else ""
     upload_active  = "active" if st.session_state.app_mode == "upload"  else ""
@@ -297,7 +297,7 @@ def main():
     st.markdown(
         f"""
         <div class="top-navbar" id="lexfusion-navbar">
-            <span class="navbar-brand">ΓÜû∩╕Å LEXFUSION</span>
+            <span class="navbar-brand">⚖️ LEXFUSION</span>
             <div class="navbar-divider"></div>
             <span style="font-size:0.72rem; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase;">
                 Legal RAG Chamber
@@ -325,21 +325,21 @@ def main():
                     font-size: 0.7rem;
                     color: {'#10b981' if chunk_count > 0 else '#f59e0b'};
                     font-weight: 600;
-                ">{'≡ƒƒó' if chunk_count > 0 else '≡ƒƒí'} {chunk_count:,} chunks</span>
+                ">{'🟢' if chunk_count > 0 else '🟡'} {chunk_count:,} chunks</span>
             </span>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # ΓöÇΓöÇ Horizontal control row (nav + language + theme toggle) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Horizontal control row (nav + language + theme toggle) ────────────────
     nav_col, lang_col, theme_col = st.columns([3, 2, 1])
 
     with nav_col:
         c1, c2 = st.columns(2)
         with c1:
             if st.button(
-                "≡ƒÆ¼ Chat Assistant",
+                "💬 Chat Assistant",
                 use_container_width=True,
                 type="primary" if st.session_state.app_mode == "chat" else "secondary",
             ):
@@ -347,7 +347,7 @@ def main():
                 st.rerun()
         with c2:
             if st.button(
-                "ΓÜû∩╕Å Debate Chamber",
+                "⚖️ Debate Chamber",
                 use_container_width=True,
                 type="primary" if st.session_state.app_mode == "debate" else "secondary",
             ):
@@ -356,7 +356,7 @@ def main():
 
     with lang_col:
         st.selectbox(
-            "≡ƒîÉ Language",
+            "🌐 Language",
             options=SUPPORTED_LANGUAGES,
             index=SUPPORTED_LANGUAGES.index(st.session_state.selected_language),
             key="selected_language",
@@ -374,12 +374,12 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # ΓöÇΓöÇ Document ingestion expander (below nav bar) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # ── Document ingestion expander (below nav bar) ───────────────────────────
     stats = client.get_stats()
     chunk_count = stats.get("chunk_count", 0)
-    store_label = f"≡ƒƒó {chunk_count:,} chunks indexed" if chunk_count > 0 else "≡ƒƒí No documents ΓÇö upload PDFs to get started"
+    store_label = f"🟢 {chunk_count:,} chunks indexed" if chunk_count > 0 else "🟡 No documents — upload PDFs to get started"
 
-    with st.expander(f"≡ƒôÑ Ingest Documents  ┬╖  {store_label}", expanded=(chunk_count == 0)):
+    with st.expander(f"📥 Ingest Documents  ·  {store_label}", expanded=(chunk_count == 0)):
         uploaded_files = st.file_uploader(
             "Upload Legal PDFs (contracts, rulings, briefs)",
             type=["pdf"],
@@ -394,10 +394,10 @@ def main():
                         if res.get("status") == "success":
                             chunks = res.get("chunks_added", 0)
                             pages  = res.get("pages_extracted", "?")
-                            st.success(f"Γ£à **{file.name}** ΓÇö {pages} pages ΓåÆ {chunks} chunks indexed")
+                            st.success(f"✅ **{file.name}** — {pages} pages → {chunks} chunks indexed")
                             st.session_state[f"uploaded_{file.name}"] = True
                         else:
-                            st.error(f"Γ¥î Ingestion failed: {res.get('message', 'Unknown error')}")
+                            st.error(f"❌ Ingestion failed: {res.get('message', 'Unknown error')}")
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     if st.session_state.app_mode == "chat":

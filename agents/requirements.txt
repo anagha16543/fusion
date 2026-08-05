@@ -1,4 +1,4 @@
-﻿# LexFusion Cross-Examine ΓÇö Agent-specific dependencies
+# LexFusion Cross-Examine — Agent-specific dependencies
 # ======================================================
 # Install with: pip install -r agents/requirements.txt
 

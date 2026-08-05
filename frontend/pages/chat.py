@@ -1,4 +1,4 @@
-﻿"""
+"""
 LexFusion Single-Shot RAG Assistant Page
 =========================================
 Simple, clean conversational chat interface for asking direct
@@ -30,7 +30,7 @@ def render_chat_page(client: LexFusionAPIClient):
     """Renders the single-shot RAG Chat assistant."""
     # Read selected language from sidebar session state
     language = st.session_state.get("selected_language", "English")
-    lang_flag = "≡ƒîì" if language != "English" else "≡ƒÆ¼"
+    lang_flag = "🌍" if language != "English" else "💬"
 
     st.markdown(
         f"""
@@ -50,7 +50,7 @@ def render_chat_page(client: LexFusionAPIClient):
                 color: #c9a84c;
                 font-weight: 600;
             ">
-                ≡ƒîÉ Responding in: {language}
+                🌐 Responding in: {language}
             </span>
         </div>
         """,

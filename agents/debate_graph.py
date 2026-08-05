@@ -1,25 +1,25 @@
-﻿"""
-LexFusion Cross-Examine ΓÇö Debate Graph
+"""
+LexFusion Cross-Examine — Debate Graph
 =======================================
 LangGraph StateGraph that orchestrates a structured legal debate between
 two AI advocates, followed by a synthesis judge node.
 
 Graph Flow:
     START
-      Γöé
-      Γû╝
-  [advocate_a_node]   ΓåÉ Round 1: Prosecution opens
-      Γöé
-      Γû╝
-  [advocate_b_node]   ΓåÉ Round 1: Defence responds
-      Γöé
-      Γû╝
-  [check_rounds] ΓöÇΓöÇΓû║ (rounds < MAX_ROUNDS) ΓöÇΓöÇΓû║ [advocate_a_node]  (loop)
-      Γöé
-      Γû╝ (rounds == MAX_ROUNDS)
-  [synthesis_node]    ΓåÉ Judge delivers final ruling
-      Γöé
-      Γû╝
+      │
+      ▼
+  [advocate_a_node]   ← Round 1: Prosecution opens
+      │
+      ▼
+  [advocate_b_node]   ← Round 1: Defence responds
+      │
+      ▼
+  [check_rounds] ──► (rounds < MAX_ROUNDS) ──► [advocate_a_node]  (loop)
+      │
+      ▼ (rounds == MAX_ROUNDS)
+  [synthesis_node]    ← Judge delivers final ruling
+      │
+      ▼
     END
 """
 
@@ -39,7 +39,7 @@ from agents.schemas import DebateState
 
 load_dotenv()
 
-# ΓöÇΓöÇ Configuration ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Configuration ────────────────────────────────────────────────────────────
 
 MAX_DEBATE_ROUNDS = int(os.getenv("MAX_DEBATE_ROUNDS", "2"))
 LLM_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
@@ -48,7 +48,7 @@ LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
 
 def _get_api_key() -> str:
     """
-    Read Groq API key ΓÇö checks Streamlit secrets first (for Streamlit Cloud),
+    Read Groq API key — checks Streamlit secrets first (for Streamlit Cloud),
     then falls back to environment variable (for local .env usage).
     """
     try:
@@ -76,19 +76,19 @@ def _get_llm() -> ChatGroq:
     )
 
 
-# ΓöÇΓöÇ Node Implementations ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Node Implementations ─────────────────────────────────────────────────────
 
 
 def advocate_a_node(state: DebateState) -> dict:
     """
-    Prosecution node ΓÇö Advocate A argues the affirmative/plaintiff position.
+    Prosecution node — Advocate A argues the affirmative/plaintiff position.
     On round > 1, it rebuts Advocate B's previous argument.
     Returns only the updated keys (LangGraph merges into state automatically).
     """
     llm = _get_llm()
 
     # Get Advocate B's last argument (empty string on round 1)
-    opponent_arg = state.get("advocate_b_argument", "None ΓÇö opening argument.")
+    opponent_arg = state.get("advocate_b_argument", "None — opening argument.")
     round_num = state.get("current_round", 1)
     language = state.get("language", "English")
 
@@ -103,7 +103,7 @@ def advocate_a_node(state: DebateState) -> dict:
     response = llm.invoke(messages)
     argument_text = response.content.strip()
 
-    # Copy list before appending ΓÇö avoids mutating state in-place
+    # Copy list before appending — avoids mutating state in-place
     history = list(state.get("argument_history", []))
     history.append(
         {
@@ -114,7 +114,7 @@ def advocate_a_node(state: DebateState) -> dict:
         }
     )
 
-    # Return ONLY updated keys ΓÇö LangGraph merges these into the shared state
+    # Return ONLY updated keys — LangGraph merges these into the shared state
     return {
         "advocate_a_argument": argument_text,
         "argument_history": history,
@@ -123,7 +123,7 @@ def advocate_a_node(state: DebateState) -> dict:
 
 def advocate_b_node(state: DebateState) -> dict:
     """
-    Defence node ΓÇö Advocate B argues the respondent/defence position.
+    Defence node — Advocate B argues the respondent/defence position.
     Always rebuts Advocate A's most recent argument.
     Returns only the updated keys (LangGraph merges into state automatically).
     """
@@ -143,7 +143,7 @@ def advocate_b_node(state: DebateState) -> dict:
     response = llm.invoke(messages)
     argument_text = response.content.strip()
 
-    # Copy list before appending ΓÇö avoids mutating state in-place
+    # Copy list before appending — avoids mutating state in-place
     history = list(state.get("argument_history", []))
     history.append(
         {
@@ -155,7 +155,7 @@ def advocate_b_node(state: DebateState) -> dict:
     )
 
     # Increment round counter after both advocates have spoken
-    # Return ONLY updated keys ΓÇö LangGraph merges these into the shared state
+    # Return ONLY updated keys — LangGraph merges these into the shared state
     return {
         "advocate_b_argument": argument_text,
         "argument_history": history,
@@ -165,7 +165,7 @@ def advocate_b_node(state: DebateState) -> dict:
 
 def synthesis_node(state: DebateState) -> dict:
     """
-    Judge node ΓÇö synthesizes all arguments into a balanced final ruling.
+    Judge node — synthesizes all arguments into a balanced final ruling.
     Extracts a confidence score from the LLM response text.
     Returns only the updated keys (LangGraph merges into state automatically).
     """
@@ -187,7 +187,7 @@ def synthesis_node(state: DebateState) -> dict:
     # Best-effort confidence score extraction
     confidence = _extract_confidence(synthesis_text)
 
-    # Return ONLY updated keys ΓÇö LangGraph merges these into the shared state
+    # Return ONLY updated keys — LangGraph merges these into the shared state
     return {
         "synthesis": synthesis_text,
         "confidence_score": confidence,
@@ -217,14 +217,14 @@ def _extract_confidence(text: str) -> int:
     return 50  # Default neutral confidence
 
 
-# ΓöÇΓöÇ Conditional Edge ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Conditional Edge ──────────────────────────────────────────────────────────
 
 
 def should_continue_debate(state: DebateState) -> Literal["continue", "synthesize"]:
     """
     Routing function: continue debate if rounds remain, else move to synthesis.
     Re-reads MAX_DEBATE_ROUNDS from the environment at call time so that a
-    per-request override written by run_debate() (via os.environ) is honoured ΓÇö
+    per-request override written by run_debate() (via os.environ) is honoured —
     the module-level constant is captured at import time and would otherwise
     ignore any runtime change.
     """
@@ -235,7 +235,7 @@ def should_continue_debate(state: DebateState) -> Literal["continue", "synthesiz
     return "synthesize"
 
 
-# ΓöÇΓöÇ Graph Assembly ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Graph Assembly ────────────────────────────────────────────────────────────
 
 
 def build_debate_graph():
@@ -255,25 +255,25 @@ def build_debate_graph():
     # Entry point: prosecution always opens
     graph.add_edge(START, "advocate_a")
 
-    # After prosecution speaks ΓåÆ defence responds
+    # After prosecution speaks → defence responds
     graph.add_edge("advocate_a", "advocate_b")
 
-    # After defence responds ΓåÆ decide: another round or synthesize?
+    # After defence responds → decide: another round or synthesize?
     graph.add_conditional_edges(
         "advocate_b",
         should_continue_debate,
         {
             "continue": "advocate_a",   # Another round of debate
-            "synthesize": "judge_synthesis",  # Enough rounds ΓÇö judge rules
+            "synthesize": "judge_synthesis",  # Enough rounds — judge rules
         },
     )
 
-    # After synthesis ΓåÆ done
+    # After synthesis → done
     graph.add_edge("judge_synthesis", END)
 
     return graph.compile()
 
 
-# ΓöÇΓöÇ Module-level compiled graph (singleton) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ── Module-level compiled graph (singleton) ──────────────────────────────────
 
 debate_graph = build_debate_graph()
